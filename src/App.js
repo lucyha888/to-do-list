@@ -1,71 +1,76 @@
 import { useState } from 'react';
 import './App.css';
+import Header from './components/Header';
+import TaskList from './components/TaskList';
+import AddTaskForm from './components/AddTaskForm';
 
 function App() {
-  const [taskList, setTaskList] = useState([])
-  const [value, setValue] = useState("")
+  const [taskList, setTaskList] = useState([
+    { id: 1, title: "Learn JS", isDone: false },
+    { id: 2, title: "Code a Todo List", isDone: false}
+  ])
+  const [newTask, setNewTask] = useState("")
+  const [isShowingIncompleted, setIsShowingIncompleted] = useState(false)
 
-  function randomIntFromInterval() { // min and max included 
-    return Math.floor(Math.random() * (1000 - 1 + 1) + 1)
-  }
-
-  const handleAddTask = (event) => {
-    event.preventDefault()
-    // id of each task must be unique
-    const newTask = {
-      id: randomIntFromInterval(),
-      name: value,
+  const handleSubmit = (e) => {
+    e.preventDefault() // prevent reload page when submit
+    const taskObject = {
+      id: Math.floor(Math.random() * (1000 - 3 + 1) + 3), // random number from 3-1000
+      title: newTask,
       isDone: false
     }
-    // set TaskList when newTask have data
-    setTaskList(previous => ([...previous, newTask]))
-    setValue("")
+    setTaskList(prev => {
+      return [
+        ...prev, // get previous state
+        taskObject
+      ]
+    })
+    setNewTask("")
   }
 
   const handleRemoveTask = (itemId) => {
-    const taskListAfterRemove = taskList?.filter(item => item.id !== itemId)
-    setTaskList([...taskListAfterRemove])
+    const taskListAfterRemove = taskList.filter(item => item.id !== itemId)
+    setTaskList(taskListAfterRemove)
   }
 
-  const handleMakeDone = (itemId) => {
-    const updatedTodo = taskList.map((item) => item.id === itemId ? {
+  const handeChangeStatusTask = (itemId) => {
+    const taskListAfterChangeStatus = taskList.map(item => item.id === itemId ? {
       ...item,
-      isDone: true
-    } : item);
-    setTaskList([...updatedTodo])
-  }
-
-  const handleUnDone = (itemId) => {
-    const updatedTodo = taskList.map((item) => item.id === itemId ? {
-      ...item,
-      isDone: false
-    } : item);
-    setTaskList([...updatedTodo])
+      isDone: !item.isDone
+    } : item)
+    setTaskList(taskListAfterChangeStatus)
   }
 
   return (
-    <div className="App">
-      <form className='create-container' onSubmit={handleAddTask}>
-        <input type="text" value={value} onChange={event => setValue(event.target.value)} />
-        <button type='submit'>Add task</button>
-      </form>
-      <hr />
-      <div className='display-container'>
-        {taskList?.map(item => {
-          return (
-            <div key={item.id}>
-              <div className='display-item' style={item.isDone ? {textDecoration: "line-through"} : undefined}>
-                {item.name}
-              </div>
-              <button onClick={() => handleRemoveTask(item.id)}>Remove</button>
-              <button onClick={() => handleMakeDone(item.id)}>Make done</button>
-              <button onClick={() => handleUnDone(item.id)}>Undone</button>
-              <hr />
-            </div>
-          )
-        })}
+    <div className="container">
+      <Header 
+        title="Todo List by Lucy" //props
+        subTitle="Get things done, one item at a time." 
+      />
+      <TaskList 
+        taskList={taskList}
+        isShowingIncompleted={isShowingIncompleted}
+        handeChangeStatusTask={handeChangeStatusTask}
+        handleRemoveTask={handleRemoveTask}
+      />
+      <div className="filter-wrapper">
+        <label htmlFor="filter" className="filter-label">
+          Show incompleted tasks only
+        </label>
+        <input 
+          type="checkbox" 
+          id="filter" 
+          checked={isShowingIncompleted} 
+          onChange={() => setIsShowingIncompleted(!isShowingIncompleted)} 
+        />
       </div>
+      <AddTaskForm
+        handleSubmit={handleSubmit}
+        newTask={newTask}
+        setNewTask={setNewTask}
+      />
     </div>
-  );
+  )
 }
+
 export default App;
